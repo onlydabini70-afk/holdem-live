@@ -1,4 +1,4 @@
-/* CHIPBOARD 로컬 API — 서버 없이(GitHub Pages 등) 브라우저 안에서 server.py 와 같은 API 를 돌린다.
+/* OVERLAY HUNTER 로컬 API — 서버 없이(GitHub Pages 등) 브라우저 안에서 server.py 와 같은 API 를 돌린다.
    engine.py / seed.py / server.py 의 라우트를 그대로 옮긴 것. 데이터는 이 브라우저 localStorage 에만 저장. */
 (function (global) {
   "use strict";
@@ -447,7 +447,7 @@
   const ROUTES = [];
   const R = (method, pattern, fn, admin = false) => ROUTES.push([method, new RegExp("^" + pattern + "$"), fn, admin]);
 
-  R("GET", "/api", () => ({ name: "CHIPBOARD API (브라우저 로컬 모드)", docs: "docs.html", endpoints: ROUTES.map(([m, p, , a]) => `${m} ${p.source.slice(1, -1)}${a ? "  (관리자)" : ""}`) }));
+  R("GET", "/api", () => ({ name: "OVERLAY HUNTER API (브라우저 로컬 모드)", docs: "docs.html", endpoints: ROUTES.map(([m, p, , a]) => `${m} ${p.source.slice(1, -1)}${a ? "  (관리자)" : ""}`) }));
   R("GET", "/api/health", () => ({ ok: true, games: Object.keys(DB.games).length, venues: Object.keys(DB.venues).length, demo: DB.demo, simulation: true, mode: "local" }));
   R("GET", "/api/meta", () => ({
     regions: [...new Set(Object.values(DB.venues).map(v => v.region))].sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)),

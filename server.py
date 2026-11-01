@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CHIPBOARD — 홀덤 토너먼트 실시간 현황 서버 (파이썬 표준 라이브러리만 사용).
+"""OVERLAY HUNTER — 홀덤 토너먼트 실시간 현황 서버 (파이썬 표준 라이브러리만 사용).
 
 실행:  python server.py            → http://localhost:8080
 옵션:  --port 8080  --host 0.0.0.0  --reset(데모 데이터 새로 생성)  --no-sim(자동 시뮬레이션 끔)
@@ -232,7 +232,7 @@ def need(obj, key, table, label):
 
 @route("GET", "/api")
 def api_index(req, q):
-    return {"name": "CHIPBOARD API", "docs": "/docs.html",
+    return {"name": "OVERLAY HUNTER API", "docs": "/docs.html",
             "endpoints": [f"{m} {re.sub(r'[(][?]P<(\w+)>[^)]+[)]', r'{\1}', p.pattern[1:-1])}" + ("  (관리자)" if a else "")
                           for m, p, _, a in ROUTES]}
 
@@ -613,7 +613,7 @@ def adm_reset(req, q):
 # ---------- HTTP ----------
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "CHIPBOARD/1.0"
+    server_version = "OverlayHunter/1.0"
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -762,7 +762,7 @@ def sim_loop():
 
 def main():
     global SIM, ADMIN_KEY
-    ap = argparse.ArgumentParser(description="CHIPBOARD 서버")
+    ap = argparse.ArgumentParser(description="OVERLAY HUNTER 서버")
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8080)))
     ap.add_argument("--reset", action="store_true", help="데모 데이터 새로 생성")
@@ -779,7 +779,7 @@ def main():
     threading.Thread(target=sim_loop, daemon=True).start()
     srv = ThreadingHTTPServer((a.host, a.port), Handler)
     srv.daemon_threads = True
-    print(f"CHIPBOARD 실행 중 → http://localhost:{a.port}")
+    print(f"OVERLAY HUNTER 실행 중 → http://localhost:{a.port}")
     print(f"관리자 페이지 → http://localhost:{a.port}/admin.html  (키: {ADMIN_KEY})")
     print(f"API 문서     → http://localhost:{a.port}/docs.html")
     try:

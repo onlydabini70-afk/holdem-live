@@ -1,4 +1,4 @@
-/* CHIPBOARD ← APIS 실시간 연동 (apislive.com 공개 주소 3개만 사용, 키 없음)
+/* OVERLAY HUNTER ← APIS 실시간 연동 (apislive.com 공개 주소 3개만 사용, 키 없음)
    - GET https://apislive.com/data.json          (60초, ETag/If-None-Match)
    - GET https://apislive.com/live                (10초)
    - GET https://apislive.com/live?clock=list     (10초)
@@ -158,7 +158,7 @@
       reg_close_level: num(t.late_reg_level), max_players: null, buyin: num(t.buy_in),
       buyin_types: bt, structure: t.structure || [], breaks: t.breaks || [],
       structure_name: structName(t.structure), level_min: num((t.structure || [])[0] && t.structure[0].duration_min),
-      prize_summary: t.prize_summary || "", notes: t.prize_summary || "",
+      prize_summary: t.prize_summary || "", notes: "",
       base_status: t.status || "", _clock: null, _live: null,
     };
   }

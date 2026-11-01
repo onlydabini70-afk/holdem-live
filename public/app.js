@@ -1,5 +1,5 @@
 "use strict";
-/* CHIPBOARD 프론트엔드 — 프레임워크 없이 해시 라우팅 + 폴링 */
+/* OVERLAY HUNTER 프론트엔드 — 프레임워크 없이 해시 라우팅 + 폴링 */
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -18,7 +18,7 @@ function mmss(sec) {
 function untilText(sec) {
   if (sec <= 0) return "곧 시작";
   const h = Math.floor(sec / 3600), m = Math.ceil(sec % 3600 / 60);
-  return h ? `${h}시간 ${m ? m + "분 " : ""}후` : `${m}분 후`;
+  return h ? `${h}시간 후` : `${m}분 후`;   // 좁은 칸에서 줄바꿈되지 않게 간결히
 }
 const blind = l => l ? `${fmt(l.sb)} / ${fmt(l.bb)}${l.ante ? ` <small>(${fmt(l.ante)})</small>` : ""}` : "-";
 function money(n, cur = "KRW") {
@@ -138,7 +138,7 @@ function gameRow(g, opts = {}) {
 
 function compCard(c) {
   const st = { ongoing: '<span class="badge b-live">진행 중</span>', upcoming: '<span class="badge b-wait">예정</span>', finished: '<span class="badge b-done">종료</span>' }[c.status];
-  return `<a class="cc" href="#/comp/${c.id}"><span class="fl">${c.flag || ""}</span>
+  return `<a class="cc" href="#/comp/${c.id}"><span class="fl">${esc((c.country || "").slice(0, 2) || (c.scope === "intl" ? "INT" : "KR"))}</span>
     <b>${esc(c.name)}</b><div class="d">${dateRange(c.start_date, c.end_date)} · ${esc(c.city)} · 이벤트 ${c.event_count}개</div>
     <div class="g">${st} ${c.max_guarantee ? `최대 GTD <strong>${money(c.max_guarantee, c.currency)}</strong>` : ""}</div></a>`;
 }
@@ -187,8 +187,9 @@ const VIEWS = {
     const vs = fv.length ? fv.map(([id, v]) => ({ id, ...v })) : rec;
     let nearHtml = `<button class="btn" style="width:100%" onclick="findNear()">${IC.pin.replace("<svg", '<svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2"')} 내 위치로 가까운 게임 찾기</button>`;
     if (S.near) nearHtml = S.near.length ? `<div class="list">${S.near.map(g => gameRow(g)).join("")}</div>` : '<div class="empty">근처에 오늘 남은 게임이 없어요</div>';
-    return `<header class="hd"><div class="brand" style="flex:1"><i></i>CHIPBOARD ${S.meta.demo ? '<span class="demo">DEMO</span>' : ""}</div>
+    return `<header class="hd"><div class="brand">Overlay Hunter</div>
         <a class="ic" href="#/search" aria-label="검색">${IC.search}</a></header>
+      <div class="hero"><img src="logo-white.png" alt="OVERLAY HUNTER"><p>전국 홀덤 토너먼트 실시간</p></div>
       <div class="kpis">
         <div class="kpi"><b class="num">${d.counts.live}</b><span>진행 중</span></div>
         <div class="kpi"><b class="num">${fmt(d.counts.players)}</b><span>플레이어</span></div>
@@ -197,7 +198,7 @@ const VIEWS = {
       </div>
       <div class="sec">
         ${d.promos.length ? `<div class="sec-h"><h2>이벤트</h2></div><div class="hs" data-keep="promo">${d.promos.map(p =>
-          `<a class="promo" style="--c:${esc(p.color)}" href="${promoHref(p)}"><b>${esc(p.title)}</b><p>${esc(p.body)}</p></a>`).join("")}</div>` : ""}
+          `<a class="promo" href="${promoHref(p)}"><b>${esc(p.title)}</b><p>${esc(p.body)}</p></a>`).join("")}</div>` : ""}
         <div class="sec-h"><h2>오늘 핫한 게임</h2><a href="#/live">전체 ›</a></div>
         ${d.hot.length ? `<div class="hs" data-keep="hot">${d.hot.map(liveCard).join("")}</div>` : '<div class="empty">지금 진행 중인 게임이 없어요</div>'}
         <div class="sec-h"><h2>지금 등록 가능</h2><a href="#/games">전체 ›</a></div>
@@ -278,8 +279,8 @@ const VIEWS = {
       <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--acc)">API 문서 ›</a></b></div>
       <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "apis" ? "APIS 실시간" : CB.mode() === "local" ? "브라우저 로컬 더미" : "서버"}</b></div>
       ${CB.mode() === "apis" ? `<div class="kv"><span>갱신</span><b>${esc(m.updated_label || "연결 중")}</b></div>
-      <div class="kv"><span>데이터 생성</span><b>${esc(m.generated_at || "-")}</b></div>` : ""}
-      <p class="note">${CB.mode() === "apis" ? "매장·토너먼트 정보 출처: APIS (apislive.com) 공개 데이터" : "CHIPBOARD 데모 · 모든 매장·대회·숫자는 가상 데이터입니다."}</p></div>`;
+      <div class="kv"><span>데이터 생성</span><b>${esc(m.generated_at ? m.generated_at.slice(5, 16).replace("-", "/").replace("T", " ") : "-")}</b></div>` : ""}
+      <p class="note">${CB.mode() === "apis" ? "매장·토너먼트 정보 출처: APIS (apislive.com) 공개 데이터" : "데모 데이터 · 모든 매장·대회·숫자는 가상입니다."}</p></div>`;
   },
 };
 
@@ -366,7 +367,11 @@ const PUSH = {
       <p class="note">앤티는 빅블라인드 앤티(BBA) 기준${g.reg_close_level != null ? ` · 등록 마감 LV ${g.reg_close_level}` : ""}</p>`;
   },
   g_pay(g) {
-    if (!g.payouts.length) return '<div class="empty">프라이즈 정보가 아직 없어요</div>';
+    if (!g.payouts.length) {
+      return g.prize_summary
+        ? `<div class="prize">${esc(g.prize_summary)}</div><p class="note">매장 공지 기준 · 참가 인원에 따라 달라질 수 있습니다.</p>`
+        : '<div class="empty">프라이즈 정보가 아직 없어요</div>';
+    }
     return `<table class="tb"><thead><tr><th>순위</th><th>프라이즈</th></tr></thead><tbody>
       ${g.payouts.map(p => `<tr><td>${esc(p.place)}</td><td>${esc(p.prize)}</td></tr>`).join("")}</tbody></table>
       <p class="note">ITM ${g.payouts.length}구간 · 매장 사정에 따라 바뀔 수 있습니다.</p>`;
@@ -395,7 +400,7 @@ const PUSH = {
     P.title = c.name;
     return `<header class="hd"><button class="ic back" onclick="goBack()" aria-label="뒤로">${IC.back}</button><h1 style="font-size:16px">대회</h1>
       <button class="ic" onclick="share(P.title)" aria-label="공유">${IC.share}</button></header>
-      <div class="dhd"><span class="v">${c.flag || ""} ${esc(c.country)} · ${esc(c.city)}</span><h2>${esc(c.name)}</h2>
+      <div class="dhd"><span class="v">${esc(c.country)} · ${esc(c.city)}</span><h2>${esc(c.name)}</h2>
       <div style="font-size:14px;color:var(--tx2)">${c.start_date} ~ ${c.end_date}</div></div>
       <div class="pane">
         <div class="kv"><span>장소</span><b>${esc(c.venue)}</b></div>
@@ -465,7 +470,7 @@ async function openTV(id) {
       const c = d.clock, s = d.stats;
       el.className = "tv " + (c.phase === "break" ? "break" : c.phase === "paused" ? "paused" : "");
       const g = { state: d.state, clock: c, start_ts: now() + c.starts_in * 1000 };
-      el.innerHTML = `<button class="ic x" onclick="goBack()" aria-label="닫기">${IC.x}</button>
+      el.innerHTML = `<img class="mark" src="logo-white.png" alt=""><button class="ic x" onclick="goBack()" aria-label="닫기">${IC.x}</button>
         <div class="vn">${esc(d.venue)}</div><div class="gn">${esc(d.name)}</div>
         <div class="lvl">${d.state === "WAITING" ? "STARTS IN" : c.on_break ? "BREAK" : c.level ? "LEVEL " + c.level.lv : "-"}${c.phase === "paused" ? " · 일시정지" : ""}</div>
         <div class="big">${d.state === "FINISHED" ? "FINISHED" : timer(g, "clock")}</div>
