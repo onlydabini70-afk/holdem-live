@@ -232,7 +232,7 @@ def need(obj, key, table, label):
 
 @route("GET", "/api")
 def api_index(req, q):
-    return {"name": "OVERLAY HUNTER API", "docs": "/docs.html",
+    return {"name": "OVERLAY HUNTER", "docs": "/docs.html",
             "endpoints": [f"{m} {re.sub(r'[(][?]P<(\w+)>[^)]+[)]', r'{\1}', p.pattern[1:-1])}" + ("  (관리자)" if a else "")
                           for m, p, _, a in ROUTES]}
 
@@ -688,7 +688,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_json(400, {"error": f"잘못된 요청: {e}"})
         if allowed:
             return self.send_json(405, {"error": "허용되지 않는 메서드"})
-        return self.send_json(404, {"error": "없는 API 입니다", "see": "/api"})
+        return self.send_json(404, {"error": "OVERLAY HUNTER에 없는 경로입니다", "see": "/api"})
 
     do_GET = do_POST = do_PATCH = do_PUT = do_DELETE = do_HEAD = dispatch
 
@@ -781,7 +781,7 @@ def main():
     srv.daemon_threads = True
     print(f"OVERLAY HUNTER 실행 중 → http://localhost:{a.port}")
     print(f"관리자 페이지 → http://localhost:{a.port}/admin.html  (키: {ADMIN_KEY})")
-    print(f"API 문서     → http://localhost:{a.port}/docs.html")
+    print(f"문서         → http://localhost:{a.port}/docs.html")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

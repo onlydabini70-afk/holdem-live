@@ -256,7 +256,7 @@ const VIEWS = {
     return header("대회") +
       `<div class="seg"><button class="${S.compScope === "kr" ? "on" : ""}" onclick="S.compScope='kr';render()">국내 대회</button><button class="${S.compScope === "intl" ? "on" : ""}" onclick="S.compScope='intl';render()">해외 대회</button></div>
       <div class="sec" style="padding-top:0"><div class="list">${d.competitions.map(compCard).join("") || '<div class="empty">등록된 대회가 없어요</div>'}</div>
-      <p class="note">${CB.mode() === "apis" ? "APIS 공개 데이터에는 대회(시리즈) 일정이 없어 비워 둡니다." : "대회 정보는 데모용 가상 데이터입니다."}</p></div>`;
+      <p class="note">${CB.mode() === "apis" ? "OVERLAY HUNTER에는 아직 대회(시리즈) 일정이 없습니다." : "대회 정보는 데모용 가상 데이터입니다."}</p></div>`;
   },
 
   async my() {
@@ -276,11 +276,11 @@ const VIEWS = {
         ${[null, ...m.regions].map(r => `<option value="${r || ""}"${r === defRegion() ? " selected" : ""}>${r || "전체"}</option>`).join("")}</select></b></div>
       <div class="kv"><span>내 기록 지우기</span><b><button class="btn" style="padding:6px 12px" onclick="if(confirm('즐겨찾기·최근 기록을 지울까요?')){['cb_fav_v','cb_fav_g','cb_recent_v','cb_region','cb_q'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});render()}">지우기</button></b></div>
       <div class="kv"><span>매장 운영자</span><b><a href="admin.html" style="color:var(--t0)">관리자 페이지 ›</a></b></div>
-      <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--t0)">API 문서 ›</a></b></div>
-      <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "apis" ? "APIS 실시간" : CB.mode() === "local" ? "브라우저 로컬 더미" : "서버"}</b></div>
+      <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--t0)">OVERLAY HUNTER 문서 ›</a></b></div>
+      <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "apis" ? "OVERLAY HUNTER 실시간" : CB.mode() === "local" ? "브라우저 로컬 더미" : "서버"}</b></div>
       ${CB.mode() === "apis" ? `<div class="kv"><span>갱신</span><b>${esc(m.updated_label || "연결 중")}</b></div>
       <div class="kv"><span>데이터 생성</span><b>${esc(m.generated_at ? m.generated_at.slice(5, 16).replace("-", "/").replace("T", " ") : "-")}</b></div>` : ""}
-      <p class="note">${CB.mode() === "apis" ? "매장·토너먼트 정보 출처: APIS (apislive.com) 공개 데이터" : "데모 데이터 · 모든 매장·대회·숫자는 가상입니다."}</p></div>`;
+      <p class="note">${CB.mode() === "apis" ? "OVERLAY HUNTER · 전국 홀덤 토너먼트 실시간" : "데모 데이터 · 모든 매장·대회·숫자는 가상입니다."}</p></div>`;
   },
 };
 

@@ -447,7 +447,7 @@
   const ROUTES = [];
   const R = (method, pattern, fn, admin = false) => ROUTES.push([method, new RegExp("^" + pattern + "$"), fn, admin]);
 
-  R("GET", "/api", () => ({ name: "OVERLAY HUNTER API (브라우저 로컬 모드)", docs: "docs.html", endpoints: ROUTES.map(([m, p, , a]) => `${m} ${p.source.slice(1, -1)}${a ? "  (관리자)" : ""}`) }));
+  R("GET", "/api", () => ({ name: "OVERLAY HUNTER (브라우저 로컬 모드)", docs: "docs.html", endpoints: ROUTES.map(([m, p, , a]) => `${m} ${p.source.slice(1, -1)}${a ? "  (관리자)" : ""}`) }));
   R("GET", "/api/health", () => ({ ok: true, games: Object.keys(DB.games).length, venues: Object.keys(DB.venues).length, demo: DB.demo, simulation: true, mode: "local" }));
   R("GET", "/api/meta", () => ({
     regions: [...new Set(Object.values(DB.venues).map(v => v.region))].sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)),
@@ -589,7 +589,7 @@
         return { status: 400, body: { error: "잘못된 요청: " + e.message } };
       }
     }
-    return allowed ? { status: 405, body: { error: "허용되지 않는 메서드" } } : { status: 404, body: { error: "없는 API 입니다", see: "/api" } };
+    return allowed ? { status: 405, body: { error: "허용되지 않는 메서드" } } : { status: 404, body: { error: "OVERLAY HUNTER에 없는 경로입니다", see: "/api" } };
   }
 
   global.LocalAPI = {

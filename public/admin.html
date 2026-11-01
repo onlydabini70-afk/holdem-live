@@ -140,7 +140,7 @@ setInterval(() => { if (!$("#main").hidden && !document.hidden) load(); }, 15000
 CB.detectWritable().then(mode => {
   CB.setMode(mode);
   $("#mode").textContent = mode === "local" ? "브라우저 로컬 모드 (쓰기)" : "서버 모드";
-  $("#keyHint").innerHTML = "관리자 페이지는 APIS 실시간이 아니라 우리 서버/로컬 데이터를 편집합니다. ";
+  $("#keyHint").innerHTML = "관리자 페이지는 OVERLAY HUNTER 실시간 데이터가 아니라 서버/로컬 데이터를 편집합니다. ";
   if (mode === "local") { $("#keyHint").innerHTML += "GitHub Pages(로컬 모드) 키는 <b>demo</b> 이고, 바꾼 내용은 이 브라우저에만 저장됩니다."; $("#key").value = "demo"; }
   const saved = store.get("cb_admin_key");
   if (saved) login(saved);

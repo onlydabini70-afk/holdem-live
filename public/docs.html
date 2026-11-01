@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OVERLAY HUNTER API 문서</title>
+<title>OVERLAY HUNTER 문서</title>
 <link rel="icon" href="icon.png" type="image/png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="app.css">
@@ -24,9 +24,9 @@
 </head>
 <body>
 <div id="app">
-  <header class="hd"><a class="ic" href="./" aria-label="앱으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><h1>API 문서<small id="mode"></small></h1></header>
-  <p class="intro">모든 응답은 JSON 이고 <code>server_now</code>(epoch ms) 가 붙습니다. 관리자 API 는 헤더 <code>X-Admin-Key</code> 가 필요합니다.
-    파이썬 서버(<code>python server.py</code>)에서는 HTTP 로, GitHub Pages 에서는 같은 API 가 브라우저 안(localapi.js)에서 돌아갑니다. 아래 <b>실행</b>을 누르면 지금 모드로 호출합니다.</p>
+  <header class="hd"><a class="ic" href="./" aria-label="앱으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><h1>OVERLAY HUNTER 문서<small id="mode"></small></h1></header>
+  <p class="intro">모든 응답은 JSON 이고 <code>server_now</code>(epoch ms) 가 붙습니다. 관리자 기능은 헤더 <code>X-Admin-Key</code> 가 필요합니다.
+    파이썬 서버(<code>python server.py</code>)에서는 HTTP 로, GitHub Pages 에서는 같은 기능이 브라우저 안에서 돌아갑니다. 아래 <b>실행</b>을 누르면 지금 모드로 호출합니다.</p>
   <div id="list"></div>
 </div>
 <script src="apis.js"></script>
@@ -96,7 +96,7 @@ document.addEventListener("click", async e => {
   catch (err) { pre.textContent = "GET " + p + "\n\n오류: " + err.message; }
   pre.classList.add("on");
 });
-CB.detect().then(m => document.getElementById("mode").textContent = m === "apis" ? "APIS 실시간" : m === "local" ? "브라우저 로컬 모드" : "서버 모드");
+CB.detect().then(m => document.getElementById("mode").textContent = m === "apis" ? "OVERLAY HUNTER 실시간" : m === "local" ? "브라우저 로컬 모드" : "서버 모드");
 </script>
 </body>
 </html>

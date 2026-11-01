@@ -344,7 +344,7 @@
   const ROUTES = [
     ["/api/health", () => ({ ok: true, mode: "apis", games: Object.keys(DB().games).length, venues: Object.keys(DB().venues).length, generated_at: DB().generated_at })],
     ["/api/meta", () => ({ regions: regionsWithGames(), today: todayStr(), dates: [0, 1, 2, 3].map(d => todayStr(d)),
-      structures: [], demo: false, mode: "apis", source: "APIS", generated_at: DB().generated_at,
+      structures: [], demo: false, mode: "apis", source: "OVERLAY HUNTER", generated_at: DB().generated_at,
       last_sync: cache.lastOk || null, stale: staleFlag(), updated_label: updatedLabel() })],
     ["/api/home", () => {
       const today = queryGames({ date: todayStr() });
@@ -408,16 +408,16 @@
     return (staleFlag() ? "갱신 실패 · 마지막 " : "실시간 ") + hh + ":" + mm;
   }
   function homePromos() {
-    return [{ id: "apis", title: "APIS 실시간 연동", body: (updatedLabel() || "연결 중") + " · 전국 매장 토너먼트", color: "#33D1FF", link: { type: "tab", id: "live" } }];
+    return [{ id: "apis", title: "OVERLAY HUNTER 실시간", body: (updatedLabel() || "연결 중") + " · 전국 매장 토너먼트", color: "#33D1FF", link: { type: "tab", id: "live" } }];
   }
   function err(status, msg) { return { __err: status, error: msg }; }
   function byPath(path) { for (const [p, fn] of ROUTES) if (typeof p === "string" && p === path) return fn({}); return {}; }
 
   async function request(method, url) {
-    if (method !== "GET") return { status: 405, body: { error: "APIS 실시간 데이터는 읽기 전용입니다" } };
+    if (method !== "GET") return { status: 405, body: { error: "OVERLAY HUNTER 실시간 데이터는 읽기 전용입니다" } };
     startPolling();
     try { await refreshAll(false); } catch (e) {
-      if (!cache.data && !cache.live) return { status: 503, body: { error: "APIS 연결 실패: " + (e.message || e) } };
+      if (!cache.data && !cache.live) return { status: 503, body: { error: "OVERLAY HUNTER 연결 실패: " + (e.message || e) } };
     }
     const u = new URL(url, "http://local/");
     const path = u.pathname.replace(/\/+$/, "") || "/";
@@ -430,7 +430,7 @@
       if (r && r.__err) return { status: r.__err, body: { error: r.error, server_now: now() } };
       return { status: 200, body: Object.assign({ server_now: now() }, r) };
     }
-    return { status: 404, body: { error: "없는 API", server_now: now() } };
+    return { status: 404, body: { error: "OVERLAY HUNTER에 없는 경로입니다", server_now: now() } };
   }
 
   global.ApisData = { request, refresh: () => refreshAll(true), get lastSync() { return cache.lastOk; }, get stale() { return staleFlag(); }, updatedLabel };
