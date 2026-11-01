@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+data/db.json
+data/db.json.tmp
+data/admin_key.txt

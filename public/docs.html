@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHIPBOARD API 문서</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  #app{max-width:860px;padding:0 0 60px}
+  .ep{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 16px 8px;padding:12px 14px}
+  .ep code{font-family:ui-monospace,Consolas,monospace;font-size:13.5px;overflow-wrap:anywhere}
+  .m{display:inline-block;min-width:58px;font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;margin-right:8px;text-align:center}
+  .GET{background:#33D1FF22;color:var(--acc)} .POST{background:#3EE0A122;color:var(--ok)} .PATCH,.PUT{background:#FFC24B22;color:var(--warn)} .DELETE{background:#FF4D6A22;color:var(--live)}
+  .ep p{font-size:13px;color:var(--tx2);margin-top:6px}
+  .ep .try{font-size:12px;color:var(--acc);margin-left:8px}
+  pre{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px;font-size:12px;max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;display:none}
+  pre.on{display:block}
+  h2.g{font-size:16px;font-weight:800;margin:22px 16px 10px}
+  .intro{margin:0 16px 8px;font-size:14px;color:var(--tx2)}
+  .intro code{background:var(--bg2);padding:1px 6px;border-radius:6px;font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hd"><a class="ic" href="./" aria-label="앱으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><h1>API 문서<small id="mode"></small></h1></header>
+  <p class="intro">모든 응답은 JSON 이고 <code>server_now</code>(epoch ms) 가 붙습니다. 관리자 API 는 헤더 <code>X-Admin-Key</code> 가 필요합니다.
+    파이썬 서버(<code>python server.py</code>)에서는 HTTP 로, GitHub Pages 에서는 같은 API 가 브라우저 안(localapi.js)에서 돌아갑니다. 아래 <b>실행</b>을 누르면 지금 모드로 호출합니다.</p>
+  <div id="list"></div>
+</div>
+<script src="localapi.js"></script>
+<script src="client.js"></script>
+<script>
+"use strict";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const EP = [
+  ["조회", [
+    ["GET", "/api", "엔드포인트 목록"],
+    ["GET", "/api/health", "상태 확인 (게임·매장 수, 데모/시뮬레이션 여부)"],
+    ["GET", "/api/meta", "지역 목록, 오늘 날짜, 선택 가능한 날짜, 블라인드 구조 목록"],
+    ["GET", "/api/home", "홈 화면 묶음: 공지, 추천, 핫한 게임, 등록 가능, 대회, 요약 숫자"],
+    ["GET", "/api/live?region=서울&sort=players", "진행 중 게임 (sort: players | entries | level | start)"],
+    ["GET", "/api/games?date=today&status=all&region=&venue=&q=&reg=open&near=37.5,127.0&sort=start&ids=", "게임 검색. status: all | live | upcoming | done, near 를 주면 distance_km 추가 (date=today 는 문서용 표기, 실제로는 YYYY-MM-DD)"],
+    ["GET", "/api/games/{id}", "게임 상세: 시계, 통계, 바이인 종류, 블라인드 구조, 프라이즈, 매장, 같은 매장 다른 게임"],
+    ["GET", "/api/games/{id}/clock", "가벼운 시계 전용 (TV 모드용)"],
+    ["GET", "/api/venues?region=&q=&near=", "매장 목록 + 오늘 게임 수 / 진행 중 / 플레이 인원"],
+    ["GET", "/api/venues/{id}", "매장 상세 + 오늘 이후 게임"],
+    ["GET", "/api/competitions?scope=kr|intl&status=ongoing|upcoming|finished", "국내·해외 대회"],
+    ["GET", "/api/competitions/{id}", "대회 상세 + 이벤트 일정"],
+    ["GET", "/api/featured", "추천 게임"],
+    ["GET", "/api/promos", "현재 공지/이벤트 배너"],
+    ["GET", "/api/structures", "블라인드 구조 전체"],
+    ["GET", "/api/structures/{id}", "블라인드 구조 하나 (hyper | turbo | standard | deep)"],
+    ["GET", "/api/search?q=강남", "매장·게임·대회 통합 검색"],
+    ["GET", "/api/stream?game={id}", "SSE 실시간 스트림, 3초마다 tick 이벤트 (파이썬 서버 전용)"],
+  ]],
+  ["관리자 (X-Admin-Key)", [
+    ["POST", "/api/admin/login", "키 확인"],
+    ["POST", "/api/admin/games", "게임 생성. 필수: name, venue_id, structure_id, start_at(ISO, KST 기준)"],
+    ["PATCH", "/api/admin/games/{id}", "게임 수정 (부분)"],
+    ["DELETE", "/api/admin/games/{id}", "게임 삭제"],
+    ["POST", "/api/admin/games/{id}/action", "{action, n}: start | pause | resume | next | prev | add_time(n초) | entry | reentry | addon | bust | finish | reset"],
+    ["POST", "/api/admin/venues", "매장 생성 (필수: name, region)"],
+    ["PATCH", "/api/admin/venues/{id}", "매장 수정"],
+    ["DELETE", "/api/admin/venues/{id}", "매장 삭제 (게임이 남아 있으면 409)"],
+    ["POST", "/api/admin/competitions", "대회 생성 (필수: scope, name, start_date, end_date)"],
+    ["PATCH", "/api/admin/competitions/{id}", "대회 수정"],
+    ["DELETE", "/api/admin/competitions/{id}", "대회 삭제"],
+    ["POST", "/api/admin/promos", "공지 생성 (필수: title, starts_at, ends_at)"],
+    ["DELETE", "/api/admin/promos/{id}", "공지 삭제"],
+    ["PUT", "/api/admin/featured", "{featured: [{game_id, priority, label}]} 추천 교체"],
+    ["POST", "/api/admin/reset", "데모 데이터 초기화"],
+  ]],
+];
+let sampleGame = null;
+document.getElementById("list").innerHTML = EP.map(([g, eps]) => `<h2 class="g">${esc(g)}</h2>` + eps.map(([m, p, d], i) => {
+  const runnable = m === "GET" && !p.includes("/stream");
+  return `<div class="ep"><code><span class="m ${m}">${m}</span>${esc(p)}</code>${runnable ? `<button class="try" data-p="${esc(p)}">실행 ›</button>` : ""}<p>${esc(d)}</p><pre></pre></div>`;
+}).join("")).join("");
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".try"); if (!b) return;
+  const pre = b.parentElement.querySelector("pre");
+  const meta = await CB.get("/api/meta");
+  if (!sampleGame) sampleGame = (await CB.get("/api/live")).games[0] || (await CB.get("/api/games?limit=1")).games[0];
+  const EX = {
+    "/api/live": "/api/live?sort=players", "/api/games": `/api/games?date=${meta.today}&status=live&sort=entries&limit=5`,
+    "/api/venues": "/api/venues?region=서울", "/api/competitions": "/api/competitions?scope=kr", "/api/search": "/api/search?q=강남",
+  };
+  const base = b.dataset.p.split("?")[0];
+  let p = EX[base] || base;
+  const id = base.includes("/venues/") ? "v01" : base.includes("/competitions/") ? "c01" : base.includes("/structures/") ? "standard" : sampleGame && sampleGame.id;
+  p = p.replace("{id}", id);
+  try { const j = await CB.get(p); pre.textContent = "GET " + p + "\n\n" + JSON.stringify(j, null, 2).slice(0, 6000); }
+  catch (err) { pre.textContent = "GET " + p + "\n\n오류: " + err.message; }
+  pre.classList.add("on");
+});
+CB.detect().then(m => document.getElementById("mode").textContent = m === "local" ? "브라우저 로컬 모드" : "서버 모드");
+</script>
+</body>
+</html>

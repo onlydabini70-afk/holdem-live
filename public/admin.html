@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHIPBOARD 관리자</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  #app{max-width:760px;padding-bottom:40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 16px 10px}
+  .card h3{font-size:15px;font-weight:800;margin-bottom:2px}
+  .card .meta{font-size:12px;color:var(--tx2);margin-bottom:10px}
+  .acts{display:flex;flex-wrap:wrap;gap:6px}
+  .acts button{padding:7px 11px;border-radius:10px;background:var(--card2);border:1px solid var(--line2);font-size:13px;font-weight:700}
+  .acts button.pri{background:var(--acc);color:#04213A;border-color:var(--acc)}
+  .acts button.warn{color:var(--live)}
+  .live{font-size:22px;font-weight:800;margin:4px 0 8px}
+  input.f,select.f{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:9px 10px;margin-top:4px}
+  label.l{display:block;font-size:12px;color:var(--tx3);margin-bottom:8px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .msg{margin:0 16px 10px;font-size:13px;color:var(--warn)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hd"><a class="ic" href="./#/my" aria-label="앱으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><h1>관리자<small id="mode"></small></h1></header>
+  <div id="login" class="card">
+    <h3>관리자 키</h3>
+    <div class="meta" id="keyHint">서버를 켤 때 콘솔에 나온 키를 넣으세요 (data/admin_key.txt).</div>
+    <div style="display:flex;gap:8px"><input class="f" id="key" type="password" placeholder="X-Admin-Key" style="margin:0"><button class="btn pri" id="loginBtn">확인</button></div>
+  </div>
+  <div id="main" hidden>
+    <div class="toolbar"><span>오늘 게임 · 매장 필터</span><select id="vsel"></select></div>
+    <p class="msg" id="msg"></p>
+    <div id="games"></div>
+    <div class="card">
+      <h3>새 토너먼트</h3>
+      <div class="meta">만들면 시작 시각에 자동으로 시계가 돌아갑니다.</div>
+      <label class="l">이름<input class="f" id="nName" value="데일리 토너먼트"></label>
+      <div class="two">
+        <label class="l">매장<select class="f" id="nVenue"></select></label>
+        <label class="l">구조<select class="f" id="nSt"></select></label>
+        <label class="l">시작 (KST)<input class="f" id="nStart" type="datetime-local"></label>
+        <label class="l">시작 칩<input class="f" id="nChips" type="number" value="30000"></label>
+        <label class="l">바이인 (원)<input class="f" id="nPrice" type="number" value="50000"></label>
+        <label class="l">등록 마감 레벨<input class="f" id="nReg" type="number" value="8"></label>
+        <label class="l">최대 인원<input class="f" id="nCap" type="number" value="60"></label>
+        <label class="l">개런티 (원)<input class="f" id="nGtd" type="number" value="0"></label>
+      </div>
+      <button class="btn pri" id="createBtn" style="width:100%;margin-top:6px">만들기</button>
+    </div>
+    <div class="card"><h3>데모 데이터</h3><div class="meta">모든 게임·매장·대회를 처음 상태로 되돌립니다.</div>
+      <button class="btn" id="resetBtn">데모 데이터 초기화</button></div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="localapi.js"></script>
+<script src="client.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const fmt = n => Number(n || 0).toLocaleString("ko-KR");
+const mmss = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+let KEY = "", META = null, VENUES = [];
+const store = { get: k => { try { return sessionStorage.getItem(k) || ""; } catch (e) { return ""; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { } } };
+const call = (m, p, b) => CB.request(m, p, b, KEY);
+function toast(t) { const e = $("#toast"); e.textContent = t; e.classList.add("on"); setTimeout(() => e.classList.remove("on"), 1800); }
+
+async function login(k) {
+  KEY = k;
+  try {
+    await call("POST", "/api/admin/login");
+    store.set("cb_admin_key", k);
+    $("#login").hidden = true; $("#main").hidden = false;
+    META = await CB.get("/api/meta");
+    VENUES = (await CB.get("/api/venues")).venues.sort((a, b) => a.name.localeCompare(b.name));
+    const vopts = VENUES.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (${esc(v.region)})</option>`).join("");
+    $("#vsel").innerHTML = `<option value="">전체 매장</option>` + vopts;
+    $("#nVenue").innerHTML = vopts;
+    $("#nSt").innerHTML = META.structures.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+    const d = new Date(CB.now() + 9 * 3600e3 + 3600e3); d.setUTCMinutes(0, 0, 0);
+    $("#nStart").value = d.toISOString().slice(0, 16);
+    load();
+  } catch (e) { toast(e.message); }
+}
+
+async function load() {
+  const qs = new URLSearchParams({ date: META.today, sort: "start" });
+  if ($("#vsel").value) qs.set("venue", $("#vsel").value);
+  const { games } = await CB.get("/api/games?" + qs);
+  $("#games").innerHTML = games.map(g => {
+    const c = g.clock, s = g.stats;
+    const lv = g.state === "WAITING" ? `시작 전 · ${new Date(g.start_ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" })}`
+      : g.state === "FINISHED" ? "종료" : `${c.on_break ? "휴식" : "LV " + c.level.lv} · <span data-end="${c.end_at || ""}">${mmss(c.remaining)}</span>${g.state === "PAUSED" ? " (정지)" : ""}`;
+    const b = (a, t, cls = "") => `<button class="${cls}" data-g="${esc(g.id)}" data-a="${a}">${t}</button>`;
+    const acts = g.state === "WAITING" ? b("start", "▶ 시작", "pri") + b("entry", "+엔트리")
+      : g.state === "FINISHED" ? b("reset", "되돌리기(대기)")
+      : (g.state === "PLAYING" ? b("pause", "⏸ 일시정지") : b("resume", "▶ 재개", "pri")) + b("prev", "◀ 이전") + b("next", "다음 ▶") + b("add_time", "+1분", "") +
+        b("entry", "+엔트리") + b("reentry", "+리엔트리") + (g.buyin_types?.length > 2 || true ? b("addon", "+애드온") : "") + b("bust", "−탈락") + b("finish", "종료", "warn");
+    return `<div class="card"><h3>${esc(g.name)}</h3><div class="meta">${esc(g.venue?.name)} · ${esc(g.id)} · ${esc(g.structure_name)}</div>
+      <div class="live num">${lv}</div><div class="meta">엔트리 ${fmt(s.entries)} · 남은 ${fmt(s.players_left)} · 평균 ${fmt(s.avg_stack)} · ${c.reg_open ? "등록 가능" : "등록 마감"}</div>
+      <div class="acts">${acts}<button data-g="${esc(g.id)}" data-a="delete" class="warn">삭제</button></div></div>`;
+  }).join("") || '<div class="empty">오늘 게임이 없어요</div>';
+}
+
+document.addEventListener("click", async e => {
+  const el = e.target.closest("[data-a]");
+  if (!el) return;
+  const id = el.dataset.g, a = el.dataset.a;
+  try {
+    if (a === "delete") { if (!confirm("이 게임을 삭제할까요?")) return; await call("DELETE", "/api/admin/games/" + id); }
+    else await call("POST", `/api/admin/games/${id}/action`, { action: a, n: a === "add_time" ? 60 : 1 });
+    $("#msg").textContent = ""; load();
+  } catch (err) { $("#msg").textContent = err.message; }
+});
+$("#loginBtn").onclick = () => login($("#key").value.trim());
+$("#key").onkeydown = e => { if (e.key === "Enter") login($("#key").value.trim()); };
+$("#vsel").onchange = load;
+$("#createBtn").onclick = async () => {
+  const price = +$("#nPrice").value, chips = +$("#nChips").value;
+  try {
+    const g = await call("POST", "/api/admin/games", {
+      name: $("#nName").value.trim(), venue_id: $("#nVenue").value, structure_id: $("#nSt").value,
+      start_at: $("#nStart").value, starting_chips: chips, reg_close_level: +$("#nReg").value, max_players: +$("#nCap").value,
+      guarantee: +$("#nGtd").value, buyin_types: [{ key: "buyin", name: "바이인", price, chips }, { key: "reentry", name: "리엔트리", price, chips }],
+    });
+    toast("만들었어요: " + g.id); load();
+  } catch (err) { $("#msg").textContent = err.message; }
+};
+$("#resetBtn").onclick = async () => {
+  if (!confirm("데모 데이터를 초기화할까요?")) return;
+  try { await call("POST", "/api/admin/reset"); toast("초기화했어요"); load(); } catch (err) { $("#msg").textContent = err.message; }
+};
+setInterval(() => document.querySelectorAll("[data-end]").forEach(e => { if (e.dataset.end) e.textContent = mmss((+e.dataset.end - CB.now()) / 1000); }), 1000);
+setInterval(() => { if (!$("#main").hidden && !document.hidden) load(); }, 15000);
+
+CB.detect().then(mode => {
+  $("#mode").textContent = mode === "local" ? "브라우저 로컬 모드" : "서버 모드";
+  if (mode === "local") { $("#keyHint").innerHTML = "GitHub Pages(로컬 모드)에서는 키가 <b>demo</b> 입니다. 바꾼 내용은 이 브라우저에만 저장됩니다."; $("#key").value = "demo"; }
+  const saved = store.get("cb_admin_key");
+  if (saved) login(saved);
+});
+</script>
+</body>
+</html>

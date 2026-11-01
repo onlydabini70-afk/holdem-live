@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071229">
+<title>CHIPBOARD — 홀덤 토너먼트 실시간</title>
+<meta name="description" content="매장 토너먼트와 국내·해외 대회의 레벨·엔트리·평균 스택을 실시간으로 (데모)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="app">
+  <main id="view"></main>
+  <div id="stack"></div>
+  <nav id="tabs">
+    <a href="#/home" data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></a>
+    <a href="#/live" data-t="live"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4M3.5 3.5a12 12 0 0 0 0 17M20.5 3.5a12 12 0 0 1 0 17" fill="none"/></svg><span>라이브</span></a>
+    <a href="#/games" data-t="games"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2" fill="none"/><path d="M3 9h18M8 2v4M16 2v4" fill="none"/></svg><span>게임</span></a>
+    <a href="#/comp" data-t="comp"><svg viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6" fill="none"/></svg><span>대회</span></a>
+    <a href="#/my" data-t="my"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none"/><path d="M4 21a8 8 0 0 1 16 0" fill="none"/></svg><span>MY</span></a>
+  </nav>
+  <div id="toast"></div>
+</div>
+<script src="localapi.js"></script>
+<script src="client.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
