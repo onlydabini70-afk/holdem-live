@@ -660,7 +660,7 @@ class Handler(BaseHTTPRequestHandler):
         path = url.path.rstrip("/") or "/"
         if path == "/api/stream":
             return self.stream()
-        if not path.startswith("/api"):
+        if not (path == "/api" or path.startswith("/api/")):
             return self.static(url.path)
         q = {k: v[-1] for k, v in parse_qs(url.query).items()}
         allowed = False

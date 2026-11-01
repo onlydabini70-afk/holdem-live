@@ -95,12 +95,13 @@ function stBadge(g) {
 }
 function regBadge(g) {
   if (!g.clock.reg_open || g.state === "FINISHED") return "";
-  return `<span class="badge b-reg">등록 가능${g.state !== "WAITING" ? ` ~LV${g.reg_close_level}` : ""}</span>`;
+  return `<span class="badge b-reg">등록 가능${g.state !== "WAITING" && g.reg_close_level != null ? ` ~LV${g.reg_close_level}` : ""}</span>`;
 }
 function timer(g, startFmt = "until") {
   const c = g.clock;
   if (g.state === "WAITING") return `<span class="num" data-start="${g.start_ts}" data-f="${startFmt}">${startFmt === "clock" ? mmss(c.starts_in) : untilText(c.starts_in)}</span>`;
   if (c.running) return `<span class="num" data-end="${c.end_at}">${mmss(c.remaining)}</span>`;
+  if (c.remaining == null) return '<span class="num">-</span>';
   return `<span class="num">${g.state === "FINISHED" ? "종료" : mmss(c.remaining)}</span>`;
 }
 const vname = g => esc(g.venue ? g.venue.name : "");
@@ -111,7 +112,7 @@ function liveCard(g) {
     <div class="top">${stBadge(g)} ${regBadge(g)}</div>
     <div class="nm">${esc(g.name)}</div>
     <div class="t2" style="font-size:12px;color:var(--tx2)">${vname(g)} · ${esc(g.venue?.region || "")}</div>
-    <div class="clk"><div class="lv">${c.on_break ? "BREAK" : "LV"}<b class="num">${c.level.lv}</b></div><div class="tm">${timer(g)}</div></div>
+    <div class="clk"><div class="lv">${c.on_break ? "BREAK" : "LV"}<b class="num">${c.level ? c.level.lv : "-"}</b></div><div class="tm">${timer(g)}</div></div>
     <div class="bl num">${blind(c.level)}</div>
     <div class="st"><span>엔트리<b class="num">${fmt(s.entries)}</b></span><span>남음<b class="num">${fmt(s.players_left)}</b></span><span>평균<b class="num">${s.avg_bb ?? "-"}BB</b></span></div>
   </a>`;
@@ -120,7 +121,7 @@ function liveCard(g) {
 function gameRow(g, opts = {}) {
   const c = g.clock, s = g.stats, live = g.state === "PLAYING" || g.state === "PAUSED";
   const left = live
-    ? `<div class="tm0"><b class="num">${c.on_break ? "휴식" : "LV" + c.level.lv}</b><span>${timer(g)}</span></div>`
+    ? `<div class="tm0"><b class="num">${c.on_break ? "휴식" : c.level ? "LV" + c.level.lv : "-"}</b><span>${timer(g)}</span></div>`
     : `<div class="tm0"><b class="num">${hhmm(g.start_ts)}</b><span>${g.state === "WAITING" ? timer(g) : "종료"}</span></div>`;
   const right = live
     ? `<div class="rt"><b class="num">${fmt(s.players_left)}<small style="font-size:12px;color:var(--tx3)">/${fmt(s.entries)}</small></b><span>${s.avg_bb ?? "-"}BB</span></div>`
@@ -254,7 +255,7 @@ const VIEWS = {
     return header("대회") +
       `<div class="seg"><button class="${S.compScope === "kr" ? "on" : ""}" onclick="S.compScope='kr';render()">국내 대회</button><button class="${S.compScope === "intl" ? "on" : ""}" onclick="S.compScope='intl';render()">해외 대회</button></div>
       <div class="sec" style="padding-top:0"><div class="list">${d.competitions.map(compCard).join("") || '<div class="empty">등록된 대회가 없어요</div>'}</div>
-      <p class="note">대회 정보는 데모용 가상 데이터입니다.</p></div>`;
+      <p class="note">${CB.mode() === "apis" ? "APIS 공개 데이터에는 대회(시리즈) 일정이 없어 비워 둡니다." : "대회 정보는 데모용 가상 데이터입니다."}</p></div>`;
   },
 
   async my() {
@@ -275,8 +276,10 @@ const VIEWS = {
       <div class="kv"><span>내 기록 지우기</span><b><button class="btn" style="padding:6px 12px" onclick="if(confirm('즐겨찾기·최근 기록을 지울까요?')){['cb_fav_v','cb_fav_g','cb_recent_v','cb_region','cb_q'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});render()}">지우기</button></b></div>
       <div class="kv"><span>매장 운영자</span><b><a href="admin.html" style="color:var(--acc)">관리자 페이지 ›</a></b></div>
       <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--acc)">API 문서 ›</a></b></div>
-      <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "local" ? "브라우저 로컬 (이 기기에만 저장)" : "서버"}</b></div>
-      <p class="note">CHIPBOARD 데모 · 모든 매장·대회·숫자는 가상 데이터입니다.</p></div>`;
+      <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "apis" ? "APIS 실시간" : CB.mode() === "local" ? "브라우저 로컬 더미" : "서버"}</b></div>
+      ${CB.mode() === "apis" ? `<div class="kv"><span>갱신</span><b>${esc(m.updated_label || "연결 중")}</b></div>
+      <div class="kv"><span>데이터 생성</span><b>${esc(m.generated_at || "-")}</b></div>` : ""}
+      <p class="note">${CB.mode() === "apis" ? "매장·토너먼트 정보 출처: APIS (apislive.com) 공개 데이터" : "CHIPBOARD 데모 · 모든 매장·대회·숫자는 가상 데이터입니다."}</p></div>`;
   },
 };
 
@@ -314,7 +317,7 @@ const PUSH = {
     const live = g.state === "PLAYING" || g.state === "PAUSED";
     const seg = g.segments[c.seg] || { sec: 1 };
     const pct = live ? Math.min(100, (1 - c.remaining / seg.sec) * 100) : 0;
-    const bigLabel = g.state === "WAITING" ? `시작까지 · ${hhmm(g.start_ts)}` : c.on_break ? `BREAK · LV ${c.level.lv} 이후` : `LEVEL ${c.level.lv}`;
+    const bigLabel = g.state === "WAITING" ? `시작까지 · ${hhmm(g.start_ts)}` : c.on_break ? `BREAK · LV ${c.level ? c.level.lv : "-"} 이후` : c.level ? `LEVEL ${c.level.lv}` : "레벨 정보 없음";
     const head = `<header class="hd"><button class="ic back" onclick="goBack()" aria-label="뒤로">${IC.back}</button><h1 style="font-size:16px">${vname(g)}</h1>
       <button class="ic" onclick="share(P.title)" aria-label="공유">${IC.share}</button>
       <button class="ic${fav ? " on" : ""}" data-act="fav" data-kind="g" data-id="${esc(g.id)}" data-name="${esc(g.name)}" aria-label="즐겨찾기">${IC.star}</button></header>`;
@@ -330,7 +333,7 @@ const PUSH = {
       <div><b class="num">${fmt(s.players_left)}</b><span>남은 인원</span></div>
       <div><b class="num">${s.avg_bb ?? "-"}<small style="font-size:12px">BB</small></b><span>평균 ${fmt(s.avg_stack)}</span></div>
       <div><b class="num">${fmt(s.total_chips)}</b><span>총 칩</span></div>
-      <div><b class="num">${c.reg_open ? (c.reg_close_in != null ? `<span data-cd="${now() + c.reg_close_in * 1000}" data-run="${c.running ? 1 : 0}">${mmss(c.reg_close_in)}</span>` : "LV" + g.reg_close_level) : "마감"}</b><span>등록 마감${g.reg_close_level ? ` (LV${g.reg_close_level})` : ""}</span></div>
+      <div><b class="num">${c.reg_open ? (c.reg_close_in != null ? `<span data-cd="${now() + c.reg_close_in * 1000}" data-run="${c.running ? 1 : 0}">${mmss(c.reg_close_in)}</span>` : (g.reg_close_level != null ? "LV" + g.reg_close_level : "-")) : (g.state === "FINISHED" ? "마감" : "-")}</b><span>등록 마감${g.reg_close_level != null ? ` (LV${g.reg_close_level})` : ""}</span></div>
       <div><b class="num">${c.next_break_in != null ? `<span data-cd="${now() + c.next_break_in * 1000}" data-run="${c.running ? 1 : 0}">${mmss(c.next_break_in)}</span>` : c.on_break ? "휴식 중" : "-"}</b><span>다음 휴식</span></div></div>`;
     const tabs = [["main", "메인"], ["str", "블라인드"], ["pay", "프라이즈"], ["venue", "매장정보"]];
     return head + `<div class="dhd"><a class="v" href="#/venue/${g.venue_id}">${vname(g)} ›</a><h2>${esc(g.name)}</h2>
@@ -345,8 +348,8 @@ const PUSH = {
       <div class="kv"><span>참가비</span><b>${bt || "-"}</b></div>
       <div class="kv"><span>시작 칩</span><b class="num">${fmt(g.starting_chips)}</b></div>
       <div class="kv"><span>개런티</span><b>${g.guarantee ? money(g.guarantee) : "없음"}</b></div>
-      <div class="kv"><span>등록 마감</span><b>LV ${g.reg_close_level} 종료 시</b></div>
-      <div class="kv"><span>최대 인원</span><b>${fmt(g.max_players)}명</b></div>
+      <div class="kv"><span>등록 마감</span><b>${g.reg_close_level != null ? `LV ${g.reg_close_level} 종료 시` : "-"}</b></div>
+      <div class="kv"><span>최대 인원</span><b>${g.max_players != null ? fmt(g.max_players) + "명" : "-"}</b></div>
       <div class="kv"><span>구조</span><b>${esc(g.structure_name)}</b></div>
       ${g.notes ? `<div class="kv"><span>안내</span><b>${esc(g.notes)}</b></div>` : ""}
       ${g.same_venue.length ? `<div class="sec-h"><h2>이 매장 다른 게임</h2></div><div class="list">${g.same_venue.map(x => gameRow(x, { noVenue: true })).join("")}</div>` : ""}`;
@@ -360,7 +363,7 @@ const PUSH = {
       return `<tr class="${cls}" ${i === cur ? 'id="curRow"' : ""}><td>${lv.lv}</td><td class="num">${fmt(lv.sb)} / ${fmt(lv.bb)}</td><td class="num">${lv.ante ? fmt(lv.ante) : "-"}</td><td>${lv.min}분</td></tr>`;
     }).join("");
     return `<table class="tb"><thead><tr><th>LV</th><th>SB / BB</th><th>앤티</th><th>시간</th></tr></thead><tbody>${rows}</tbody></table>
-      <p class="note">앤티는 빅블라인드 앤티(BBA) 기준 · 등록 마감 LV ${g.reg_close_level}</p>`;
+      <p class="note">앤티는 빅블라인드 앤티(BBA) 기준${g.reg_close_level != null ? ` · 등록 마감 LV ${g.reg_close_level}` : ""}</p>`;
   },
   g_pay(g) {
     if (!g.payouts.length) return '<div class="empty">프라이즈 정보가 아직 없어요</div>';
@@ -416,10 +419,11 @@ const PUSH = {
 
 function venueInfo(v, short = false) {
   if (!v) return '<div class="empty">매장 정보가 없어요</div>';
-  return `<div class="kv"><span>주소</span><b>${esc(v.address)}</b></div>
-    <div class="kv"><span>전화</span><b><a href="tel:${esc(v.phone)}" style="color:var(--acc)">${esc(v.phone)}</a></b></div>
-    <div class="kv"><span>영업시간</span><b>${esc(v.hours)}</b></div>
-    <div class="kv"><span>테이블</span><b>${v.tables}개</b></div>
+  return `<div class="kv"><span>주소</span><b>${esc(v.address || "-")}</b></div>
+    ${v.phone ? `<div class="kv"><span>전화</span><b><a href="tel:${esc(v.phone)}" style="color:var(--acc)">${esc(v.phone)}</a></b></div>` : ""}
+    ${v.open_chat_url ? `<div class="kv"><span>오픈채팅</span><b><a target="_blank" rel="noopener" style="color:var(--acc)" href="${esc(v.open_chat_url)}">문의하기 ›</a></b></div>` : ""}
+    <div class="kv"><span>영업시간</span><b>${esc(v.hours || "-")}</b></div>
+    <div class="kv"><span>테이블</span><b>${v.tables != null ? v.tables + "개" : "-"}</b></div>
     ${v.amenities?.length ? `<div class="kv"><span>편의시설</span><b>${v.amenities.map(esc).join(" · ")}</b></div>` : ""}
     <div class="kv"><span>지도</span><b><a target="_blank" rel="noopener" style="color:var(--acc)" href="https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}">지도에서 보기 ›</a></b></div>
     ${short ? "" : `<div style="margin-top:14px"><a class="btn" style="width:100%" href="#/venue/${v.id}">매장 전체 일정 보기</a></div>`}`;
@@ -463,7 +467,7 @@ async function openTV(id) {
       const g = { state: d.state, clock: c, start_ts: now() + c.starts_in * 1000 };
       el.innerHTML = `<button class="ic x" onclick="goBack()" aria-label="닫기">${IC.x}</button>
         <div class="vn">${esc(d.venue)}</div><div class="gn">${esc(d.name)}</div>
-        <div class="lvl">${d.state === "WAITING" ? "STARTS IN" : c.on_break ? "BREAK" : "LEVEL " + c.level.lv}${c.phase === "paused" ? " · 일시정지" : ""}</div>
+        <div class="lvl">${d.state === "WAITING" ? "STARTS IN" : c.on_break ? "BREAK" : c.level ? "LEVEL " + c.level.lv : "-"}${c.phase === "paused" ? " · 일시정지" : ""}</div>
         <div class="big">${d.state === "FINISHED" ? "FINISHED" : timer(g, "clock")}</div>
         <div class="bl num">${blind(c.on_break ? c.next : c.level).replace(/<\/?small>/g, "")}</div>
         <div class="nx">${c.next && !c.on_break ? `NEXT ${blind(c.next).replace(/<\/?small>/g, "")}` : ""}</div>

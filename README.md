@@ -13,13 +13,32 @@
 - **관리자**(`admin.html`): 시계 시작/일시정지/재개/이전·다음 레벨/+1분, 엔트리·리엔트리·애드온·탈락, 게임 생성·삭제, 데모 초기화
 - **API 문서**(`docs.html`): 모든 엔드포인트와 바로 실행
 
-## 두 가지 실행 방식
-| 방식 | API | 데이터 |
-|---|---|---|
-| `python server.py` | 파이썬 서버 (HTTP, SSE 포함) | `data/db.json` — 모든 사용자가 공유 |
-| GitHub Pages (`*.github.io`) | 브라우저 안에서 같은 API 실행 (`public/localapi.js`) | 각 브라우저 localStorage |
+## 데이터 출처 (APIS 실시간)
+기본 데이터는 **APIS (apislive.com)** 가 공개로 내주는 주소 3개에서 가져옵니다. 키·로그인 없음.
 
-프론트(`public/client.js`)가 `api/health` 응답으로 자동 판단합니다. `?mode=local` / `?mode=server` 로 강제할 수 있습니다.
+| 주소 | 주기 | 쓰는 값 |
+|---|---|---|
+| `GET /data.json` | 60초 (ETag/If-None-Match, 304면 유지) | 매장·토너먼트·블라인드 구조 |
+| `GET /live` | 10초 | 진행 레벨·엔트리·남은 인원·평균 스택 |
+| `GET /live?clock=list` | 10초 | 클락 기반 레벨/남은 시간 (levelIdx·endsAt) |
+
+- 탭이 숨겨지면 폴링을 멈춥니다.
+- 연결 규칙: `/live.id` = `tournament._key`, 클락 `game_id` = `tournament._gameid`.
+- 진행 상태는 실시간 값 우선, 클락 `updated_at` 40분 초과는 제외.
+- 실패해도 더미로 되돌리지 않고 **마지막 성공값 + 갱신 시각**을 유지합니다.
+- 없는 값은 지어내지 않고 `-` 로 표시합니다.
+- 매장 **연락처(contact)는 화면에 노출하지 않습니다.** 회원·지갑·주문 등 다른 데이터는 조회하지 않습니다.
+
+데이터 호출은 전부 [public/apis.js](public/apis.js) 한 파일에 모여 있고, 화면 코드는 그 파일이 내주는 응답(기존 더미와 같은 모양)만 씁니다.
+
+## 실행 방식
+| 모드 | 데이터 | 비고 |
+|---|---|---|
+| 기본 (`?mode=apis`) | APIS 실시간 | 읽기 전용 |
+| `?mode=local` | 브라우저 안 더미 (`public/localapi.js`) | 기기별 저장, 관리자 편집 가능 |
+| `?mode=server` | 파이썬 서버 `data/db.json` | 관리자 편집 가능 |
+
+관리자 페이지(`admin.html`)는 APIS 가 읽기 전용이라 항상 서버/로컬 데이터를 편집합니다.
 
 ## 로컬 실행
 ```bash
