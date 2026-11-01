@@ -129,7 +129,7 @@ function gameRow(g, opts = {}) {
       ? `<div class="rt"><b class="num">${money(g.buyin)}</b><span>${s.entries ? `사전 ${s.entries}명` : "바이인"}</span></div>`
       : `<div class="rt"><b class="num">${fmt(s.entries)}</b><span>엔트리</span></div>`;
   const dist = g.distance_km != null ? ` · ${g.distance_km}km` : "";
-  return `<a class="row${g.state === "FINISHED" ? " dim" : ""}" href="#/game/${g.id}">${left}
+  return `<a class="row${g.state === "FINISHED" ? " dim" : live ? " is-live" : g.state === "WAITING" ? " is-wait" : ""}" href="#/game/${g.id}">${left}
     <div class="bd"><div class="t1">${esc(g.name)}</div>
       <div class="t2">${opts.noVenue ? esc(g.structure_name) : `${vname(g)} · ${esc(g.venue?.region || "")}${dist}`}${live ? ` · <span class="num">${blind(c.level).replace(/<\/?small>/g, "")}</span>` : ""}</div>
       <div class="t3">${stBadge(g)}${regBadge(g)}${g.guarantee ? `<span class="badge b-tag">GTD ${money(g.guarantee)}</span>` : ""}${(g.tags || []).slice(0, 2).map(t => `<span class="badge b-tag">${esc(t)}</span>`).join("")}</div>
@@ -189,7 +189,7 @@ const VIEWS = {
     if (S.near) nearHtml = S.near.length ? `<div class="list">${S.near.map(g => gameRow(g)).join("")}</div>` : '<div class="empty">근처에 오늘 남은 게임이 없어요</div>';
     return `<header class="hd"><div class="brand">Overlay Hunter</div>
         <a class="ic" href="#/search" aria-label="검색">${IC.search}</a></header>
-      <div class="hero"><img src="logo-black.png" alt="OVERLAY HUNTER"><p>전국 홀덤 토너먼트 실시간</p></div>
+      <div class="hero"><img src="logo-color.png" alt="OVERLAY HUNTER"><p>전국 홀덤 토너먼트 실시간</p></div>
       <div class="kpis">
         <div class="kpi"><b class="num">${d.counts.live}</b><span>진행 중</span></div>
         <div class="kpi"><b class="num">${fmt(d.counts.players)}</b><span>플레이어</span></div>
@@ -470,7 +470,7 @@ async function openTV(id) {
       const c = d.clock, s = d.stats;
       el.className = "tv " + (c.phase === "break" ? "break" : c.phase === "paused" ? "paused" : "");
       const g = { state: d.state, clock: c, start_ts: now() + c.starts_in * 1000 };
-      el.innerHTML = `<img class="mark" src="logo-white.png" alt=""><button class="ic x" onclick="goBack()" aria-label="닫기">${IC.x}</button>
+      el.innerHTML = `<img class="mark" src="logo-sticker.png" alt=""><button class="ic x" onclick="goBack()" aria-label="닫기">${IC.x}</button>
         <div class="vn">${esc(d.venue)}</div><div class="gn">${esc(d.name)}</div>
         <div class="lvl">${d.state === "WAITING" ? "STARTS IN" : c.on_break ? "BREAK" : c.level ? "LEVEL " + c.level.lv : "-"}${c.phase === "paused" ? " · 일시정지" : ""}</div>
         <div class="big">${d.state === "FINISHED" ? "FINISHED" : timer(g, "clock")}</div>
