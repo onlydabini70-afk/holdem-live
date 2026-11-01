@@ -9,18 +9,18 @@
 <link rel="stylesheet" href="app.css">
 <style>
   #app{max-width:760px;padding-bottom:40px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 16px 10px}
+  .card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 16px 10px}
   .card h3{font-size:15px;font-weight:800;margin-bottom:2px}
-  .card .meta{font-size:12px;color:var(--tx2);margin-bottom:10px}
+  .card .meta{font-size:12px;color:var(--t1);margin-bottom:10px}
   .acts{display:flex;flex-wrap:wrap;gap:6px}
-  .acts button{padding:7px 11px;border-radius:10px;background:var(--card2);border:1px solid var(--line2);font-size:13px;font-weight:700}
-  .acts button.pri{background:var(--acc);color:#04213A;border-color:var(--acc)}
-  .acts button.warn{color:var(--live)}
+  .acts button{padding:7px 11px;border-radius:10px;background:var(--s2);border:1px solid var(--line2);font-size:13px;font-weight:700}
+  .acts button.pri{background:var(--t0);color:#04213A;border-color:var(--t0)}
+  .acts button.warn{color:var(--t0);box-shadow:inset 0 0 0 1px var(--t0)}
   .live{font-size:22px;font-weight:800;margin:4px 0 8px}
-  input.f,select.f{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:9px 10px;margin-top:4px}
-  label.l{display:block;font-size:12px;color:var(--tx3);margin-bottom:8px}
+  input.f,select.f{width:100%;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:9px 10px;margin-top:4px}
+  label.l{display:block;font-size:12px;color:var(--t2);margin-bottom:8px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .msg{margin:0 16px 10px;font-size:13px;color:var(--warn)}
+  .msg{margin:0 16px 10px;font-size:13px;color:var(--t1)}
 </style>
 </head>
 <body>
@@ -29,7 +29,7 @@
   <div id="login" class="card">
     <h3>관리자 키</h3>
     <div class="meta" id="keyHint">서버를 켤 때 콘솔에 나온 키를 넣으세요 (data/admin_key.txt).</div>
-    <div style="display:flex;gap:8px"><input class="f" id="key" type="password" placeholder="X-Admin-Key" style="margin:0"><button class="btn pri" id="loginBtn">확인</button></div>
+    <div style="display:flex;gap:8px"><input class="f" id="key" type="password" placeholder="X-Admin-Key" style="margin:0"><button class="btn pri" id="loginBtn" style="flex:none;white-space:nowrap">확인</button></div>
   </div>
   <div id="main" hidden>
     <div class="toolbar"><span>오늘 게임 · 매장 필터</span><select id="vsel"></select></div>

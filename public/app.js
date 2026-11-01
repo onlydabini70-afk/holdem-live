@@ -111,7 +111,7 @@ function liveCard(g) {
   return `<a class="lc" href="#/game/${g.id}">
     <div class="top">${stBadge(g)} ${regBadge(g)}</div>
     <div class="nm">${esc(g.name)}</div>
-    <div class="t2" style="font-size:12px;color:var(--tx2)">${vname(g)} · ${esc(g.venue?.region || "")}</div>
+    <div class="t2" style="font-size:12px;color:var(--t1)">${vname(g)} · ${esc(g.venue?.region || "")}</div>
     <div class="clk"><div class="lv">${c.on_break ? "BREAK" : "LV"}<b class="num">${c.level ? c.level.lv : "-"}</b></div><div class="tm">${timer(g)}</div></div>
     <div class="bl num">${blind(c.level)}</div>
     <div class="st"><span>엔트리<b class="num">${fmt(s.entries)}</b></span><span>남음<b class="num">${fmt(s.players_left)}</b></span><span>평균<b class="num">${s.avg_bb ?? "-"}BB</b></span></div>
@@ -124,7 +124,7 @@ function gameRow(g, opts = {}) {
     ? `<div class="tm0"><b class="num">${c.on_break ? "휴식" : c.level ? "LV" + c.level.lv : "-"}</b><span>${timer(g)}</span></div>`
     : `<div class="tm0"><b class="num">${hhmm(g.start_ts)}</b><span>${g.state === "WAITING" ? timer(g) : "종료"}</span></div>`;
   const right = live
-    ? `<div class="rt"><b class="num">${fmt(s.players_left)}<small style="font-size:12px;color:var(--tx3)">/${fmt(s.entries)}</small></b><span>${s.avg_bb ?? "-"}BB</span></div>`
+    ? `<div class="rt"><b class="num">${fmt(s.players_left)}<small style="font-size:12px;color:var(--t2)">/${fmt(s.entries)}</small></b><span>${s.avg_bb ?? "-"}BB</span></div>`
     : g.state === "WAITING"
       ? `<div class="rt"><b class="num">${money(g.buyin)}</b><span>${s.entries ? `사전 ${s.entries}명` : "바이인"}</span></div>`
       : `<div class="rt"><b class="num">${fmt(s.entries)}</b><span>엔트리</span></div>`;
@@ -144,7 +144,7 @@ function compCard(c) {
 }
 
 function venueRow(v) {
-  return `<a class="row" href="#/venue/${v.id}"><div class="tm0"><b style="color:var(--acc)">${esc(v.region)}</b><span>${v.tables ? v.tables + "테이블" : ""}</span></div>
+  return `<a class="row" href="#/venue/${v.id}"><div class="tm0"><b style="color:var(--t0)">${esc(v.region)}</b><span>${v.tables ? v.tables + "테이블" : ""}</span></div>
     <div class="bd"><div class="t1">${esc(v.name)}</div><div class="t2">${esc(v.address)}${v.distance_km != null ? ` · ${v.distance_km}km` : ""}</div>
     ${v.live_games != null ? `<div class="t3">${v.live_games ? `<span class="badge b-live">진행 ${v.live_games}</span>` : ""}<span class="badge b-tag">오늘 ${v.today_games}게임</span></div>` : ""}</div>
     ${v.live_players != null ? `<div class="rt"><b class="num">${fmt(v.live_players)}</b><span>플레이 중</span></div>` : ""}</a>`;
@@ -189,7 +189,7 @@ const VIEWS = {
     if (S.near) nearHtml = S.near.length ? `<div class="list">${S.near.map(g => gameRow(g)).join("")}</div>` : '<div class="empty">근처에 오늘 남은 게임이 없어요</div>';
     return `<header class="hd"><div class="brand">Overlay Hunter</div>
         <a class="ic" href="#/search" aria-label="검색">${IC.search}</a></header>
-      <div class="hero"><img src="logo-white.png" alt="OVERLAY HUNTER"><p>전국 홀덤 토너먼트 실시간</p></div>
+      <div class="hero"><img src="logo-black.png" alt="OVERLAY HUNTER"><p>전국 홀덤 토너먼트 실시간</p></div>
       <div class="kpis">
         <div class="kpi"><b class="num">${d.counts.live}</b><span>진행 중</span></div>
         <div class="kpi"><b class="num">${fmt(d.counts.players)}</b><span>플레이어</span></div>
@@ -264,7 +264,7 @@ const VIEWS = {
     const fv = Object.entries(favV()), fg = Object.keys(favG()), rec = store.get("cb_recent_v", []);
     let favGames = [];
     if (fg.length) favGames = (await api("/api/games?ids=" + encodeURIComponent(fg.join(",")))).games;
-    const vlist = arr => arr.map(v => `<a class="row" href="#/venue/${v.id}"><div class="tm0"><b style="color:var(--acc)">${esc(v.region || "")}</b></div><div class="bd"><div class="t1">${esc(v.name)}</div></div><div class="rt"><span>›</span></div></a>`).join("");
+    const vlist = arr => arr.map(v => `<a class="row" href="#/venue/${v.id}"><div class="tm0"><b style="color:var(--t0)">${esc(v.region || "")}</b></div><div class="bd"><div class="t1">${esc(v.name)}</div></div><div class="rt"><span>›</span></div></a>`).join("");
     return header("MY") + `<div class="sec">
       <div class="sec-h"><h2>즐겨찾기 매장</h2></div>
       ${fv.length ? `<div class="list">${vlist(fv.map(([id, v]) => ({ id, ...v })))}</div>` : '<div class="empty">매장 화면의 ☆ 를 눌러 추가하세요</div>'}
@@ -272,11 +272,11 @@ const VIEWS = {
       ${favGames.length ? `<div class="list">${favGames.map(g => gameRow(g)).join("")}</div>` : '<div class="empty">게임 화면의 ☆ 를 눌러 추가하세요</div>'}
       ${rec.length ? `<div class="sec-h"><h2>최근 본 매장</h2></div><div class="list">${vlist(rec)}</div>` : ""}
       <div class="sec-h"><h2>설정</h2></div>
-      <div class="kv"><span>기본 지역</span><b><select style="background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px" onchange="store.set('cb_region',this.value||null);S._liveInit=S._gamesInit=false;S.liveRegion=S.gamesRegion=null;toast('저장했어요')">
+      <div class="kv"><span>기본 지역</span><b><select style="background:var(--s1);border:1px solid var(--line);border-radius:8px;padding:5px" onchange="store.set('cb_region',this.value||null);S._liveInit=S._gamesInit=false;S.liveRegion=S.gamesRegion=null;toast('저장했어요')">
         ${[null, ...m.regions].map(r => `<option value="${r || ""}"${r === defRegion() ? " selected" : ""}>${r || "전체"}</option>`).join("")}</select></b></div>
       <div class="kv"><span>내 기록 지우기</span><b><button class="btn" style="padding:6px 12px" onclick="if(confirm('즐겨찾기·최근 기록을 지울까요?')){['cb_fav_v','cb_fav_g','cb_recent_v','cb_region','cb_q'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});render()}">지우기</button></b></div>
-      <div class="kv"><span>매장 운영자</span><b><a href="admin.html" style="color:var(--acc)">관리자 페이지 ›</a></b></div>
-      <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--acc)">API 문서 ›</a></b></div>
+      <div class="kv"><span>매장 운영자</span><b><a href="admin.html" style="color:var(--t0)">관리자 페이지 ›</a></b></div>
+      <div class="kv"><span>개발자</span><b><a href="docs.html" style="color:var(--t0)">API 문서 ›</a></b></div>
       <div class="kv"><span>데이터 모드</span><b>${CB.mode() === "apis" ? "APIS 실시간" : CB.mode() === "local" ? "브라우저 로컬 더미" : "서버"}</b></div>
       ${CB.mode() === "apis" ? `<div class="kv"><span>갱신</span><b>${esc(m.updated_label || "연결 중")}</b></div>
       <div class="kv"><span>데이터 생성</span><b>${esc(m.generated_at ? m.generated_at.slice(5, 16).replace("-", "/").replace("T", " ") : "-")}</b></div>` : ""}
@@ -389,9 +389,9 @@ const PUSH = {
     return `<header class="hd"><button class="ic back" onclick="goBack()" aria-label="뒤로">${IC.back}</button><h1 style="font-size:16px">매장</h1>
       <button class="ic" onclick="share(P.title)" aria-label="공유">${IC.share}</button>
       <button class="ic${fav ? " on" : ""}" data-act="fav" data-kind="v" data-id="${esc(v.id)}" data-name="${esc(v.name)}" data-region="${esc(v.region)}" aria-label="즐겨찾기">${IC.star}</button></header>
-      <div class="dhd"><span class="v">${esc(v.region)}</span><h2>${esc(v.name)}</h2><div style="font-size:13px;color:var(--tx2)">${esc(v.intro)}</div></div>
+      <div class="dhd"><span class="v">${esc(v.region)}</span><h2>${esc(v.name)}</h2><div style="font-size:13px;color:var(--t1)">${esc(v.intro)}</div></div>
       <div class="pane">${venueInfo(v, true)}
-      ${Object.entries(byDay).map(([d, gs]) => `<div class="sec-h"><h2>${dayLabel(d, m.today)}</h2><span style="font-size:13px;color:var(--tx3)">${gs.length}게임</span></div>
+      ${Object.entries(byDay).map(([d, gs]) => `<div class="sec-h"><h2>${dayLabel(d, m.today)}</h2><span style="font-size:13px;color:var(--t2)">${gs.length}게임</span></div>
         <div class="list">${gs.map(g => gameRow(g, { noVenue: true })).join("")}</div>`).join("") || '<div class="empty">예정된 게임이 없어요</div>'}</div>`;
   },
 
@@ -401,14 +401,14 @@ const PUSH = {
     return `<header class="hd"><button class="ic back" onclick="goBack()" aria-label="뒤로">${IC.back}</button><h1 style="font-size:16px">대회</h1>
       <button class="ic" onclick="share(P.title)" aria-label="공유">${IC.share}</button></header>
       <div class="dhd"><span class="v">${esc(c.country)} · ${esc(c.city)}</span><h2>${esc(c.name)}</h2>
-      <div style="font-size:14px;color:var(--tx2)">${c.start_date} ~ ${c.end_date}</div></div>
+      <div style="font-size:14px;color:var(--t1)">${c.start_date} ~ ${c.end_date}</div></div>
       <div class="pane">
         <div class="kv"><span>장소</span><b>${esc(c.venue)}</b></div>
         <div class="kv"><span>주최</span><b>${esc(c.organizer)}</b></div>
         <div class="kv"><span>통화</span><b>${esc(c.currency)}</b></div>
         <div class="sec-h"><h2>이벤트 일정</h2></div>
         <table class="tb"><thead><tr><th>#</th><th>날짜</th><th>바이인</th><th>GTD</th></tr></thead><tbody>
-        ${c.events.map(e => `<tr><td><b>${e.no}. ${esc(e.name)}</b>${e.chips ? `<br><small style="color:var(--tx3)">시작 ${fmt(e.chips)}칩</small>` : ""}</td><td>${e.date.slice(5).replace("-", "/")}<br><small style="color:var(--tx3)">${esc(e.time)}</small></td><td class="num">${e.buyin ? money(e.buyin, c.currency) : "-"}</td><td class="num">${e.guarantee ? money(e.guarantee, c.currency) : "-"}</td></tr>`).join("")}
+        ${c.events.map(e => `<tr><td><b>${e.no}. ${esc(e.name)}</b>${e.chips ? `<br><small style="color:var(--t2)">시작 ${fmt(e.chips)}칩</small>` : ""}</td><td>${e.date.slice(5).replace("-", "/")}<br><small style="color:var(--t2)">${esc(e.time)}</small></td><td class="num">${e.buyin ? money(e.buyin, c.currency) : "-"}</td><td class="num">${e.guarantee ? money(e.guarantee, c.currency) : "-"}</td></tr>`).join("")}
         </tbody></table>
         ${c.notes ? `<p class="note">${esc(c.notes)}</p>` : ""}</div>`;
   },
@@ -416,7 +416,7 @@ const PUSH = {
   async search() {
     const recent = store.get("cb_q", []);
     return `<header class="hd"><button class="ic back" onclick="goBack()" aria-label="뒤로">${IC.back}</button>
-      <label class="sbox">${IC.search.replace("<svg", '<svg width="18" height="18" style="stroke:var(--tx3);fill:none;stroke-width:2"')}<input id="q" placeholder="매장, 게임, 지역, 대회 검색" autocomplete="off" value="${esc(P.q || "")}"></label></header>
+      <label class="sbox">${IC.search.replace("<svg", '<svg width="18" height="18" style="stroke:var(--t2);fill:none;stroke-width:2"')}<input id="q" placeholder="매장, 게임, 지역, 대회 검색" autocomplete="off" value="${esc(P.q || "")}"></label></header>
       <div id="sres">${recent.length && !P.q ? `<div class="sec"><div class="sec-h"><h2>최근 검색</h2><button onclick="store.set('cb_q',[]);renderPush()">지우기</button></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">${recent.map(t => `<button class="chip" data-act="q" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div></div>` : ""}</div>`;
   },
@@ -425,12 +425,12 @@ const PUSH = {
 function venueInfo(v, short = false) {
   if (!v) return '<div class="empty">매장 정보가 없어요</div>';
   return `<div class="kv"><span>주소</span><b>${esc(v.address || "-")}</b></div>
-    ${v.phone ? `<div class="kv"><span>전화</span><b><a href="tel:${esc(v.phone)}" style="color:var(--acc)">${esc(v.phone)}</a></b></div>` : ""}
-    ${v.open_chat_url ? `<div class="kv"><span>오픈채팅</span><b><a target="_blank" rel="noopener" style="color:var(--acc)" href="${esc(v.open_chat_url)}">문의하기 ›</a></b></div>` : ""}
+    ${v.phone ? `<div class="kv"><span>전화</span><b><a href="tel:${esc(v.phone)}" style="color:var(--t0)">${esc(v.phone)}</a></b></div>` : ""}
+    ${v.open_chat_url ? `<div class="kv"><span>오픈채팅</span><b><a target="_blank" rel="noopener" style="color:var(--t0)" href="${esc(v.open_chat_url)}">문의하기 ›</a></b></div>` : ""}
     <div class="kv"><span>영업시간</span><b>${esc(v.hours || "-")}</b></div>
     <div class="kv"><span>테이블</span><b>${v.tables != null ? v.tables + "개" : "-"}</b></div>
     ${v.amenities?.length ? `<div class="kv"><span>편의시설</span><b>${v.amenities.map(esc).join(" · ")}</b></div>` : ""}
-    <div class="kv"><span>지도</span><b><a target="_blank" rel="noopener" style="color:var(--acc)" href="https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}">지도에서 보기 ›</a></b></div>
+    <div class="kv"><span>지도</span><b><a target="_blank" rel="noopener" style="color:var(--t0)" href="https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}">지도에서 보기 ›</a></b></div>
     ${short ? "" : `<div style="margin-top:14px"><a class="btn" style="width:100%" href="#/venue/${v.id}">매장 전체 일정 보기</a></div>`}`;
 }
 
